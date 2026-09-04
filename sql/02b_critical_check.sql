@@ -29,8 +29,8 @@ SELECT
   COUNT(DISTINCT gl.account_id)                  AS distinct_accounts,
   ROUND(SUM(COALESCE(CAST(gl.credit AS NUMERIC), 0)
           - COALESCE(CAST(gl.debit  AS NUMERIC), 0)), 2) AS amount
-FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger` gl
-JOIN `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts` coa
+FROM `spherical-entry-506811-j2.qbo_api.general_ledger` gl
+JOIN `spherical-entry-506811-j2.qbo_api.chart_of_accounts` coa
   ON gl.account_id = coa.id
 GROUP BY coa.account_type
 ORDER BY gl_rows DESC;
@@ -58,7 +58,7 @@ SELECT
   ROUND(SUM(COALESCE(CAST(debit  AS NUMERIC), 0))
       - SUM(COALESCE(CAST(credit AS NUMERIC), 0)), 2) AS should_be_zero,
   COUNT(*) AS rows_checked
-FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`;
+FROM `spherical-entry-506811-j2.qbo_api.general_ledger`;
 
 
 -- ---------------------------------------------------------------------------
@@ -71,8 +71,8 @@ SELECT
   gl.account_name AS gl_name,
   coa.name        AS coa_name,
   COUNT(*)        AS rows
-FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger` gl
-JOIN `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts` coa
+FROM `spherical-entry-506811-j2.qbo_api.general_ledger` gl
+JOIN `spherical-entry-506811-j2.qbo_api.chart_of_accounts` coa
   ON gl.account_id = coa.id
 WHERE LOWER(TRIM(gl.account_name)) != LOWER(TRIM(coa.name))
 GROUP BY 1, 2, 3
@@ -89,7 +89,7 @@ SELECT
   COUNT(*) AS gl_rows,
   MIN(date) AS first_txn,
   MAX(date) AS last_txn
-FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`
+FROM `spherical-entry-506811-j2.qbo_api.general_ledger`
 GROUP BY department_id, department
 ORDER BY gl_rows DESC;
 
@@ -98,4 +98,4 @@ ORDER BY gl_rows DESC;
 -- Full date range of the ledger.
 -- ---------------------------------------------------------------------------
 SELECT MIN(date) AS first_txn, MAX(date) AS last_txn, COUNT(*) AS rows
-FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`;
+FROM `spherical-entry-506811-j2.qbo_api.general_ledger`;

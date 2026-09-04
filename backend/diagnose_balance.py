@@ -2,8 +2,8 @@
 
 from google.cloud import bigquery
 
-client = bigquery.Client(project="nodal-plexus-492111-e9")
-DS = "nodal-plexus-492111-e9.warehouse_llc"
+client = bigquery.Client(project="spherical-entry-506811-j2")
+DS = "spherical-entry-506811-j2.qbo_api"
 
 
 def q(sql):

@@ -1,8 +1,8 @@
 -- ===========================================================================
 -- CLASSIFICATION & MAPPING
 --
--- Source of amounts : warehouse_llc.general_ledger        (a full general ledger)
--- Source of types   : warehouse_llc.chart_of_accounts
+-- Source of amounts : qbo_api.general_ledger        (a full general ledger)
+-- Source of types   : qbo_api.chart_of_accounts
 --
 -- RULES IN FORCE (confirmed by the data owner):
 --
@@ -72,7 +72,7 @@ WITH gl AS (
     -- Normalised join key.
     LOWER(TRIM(account_name)) AS name_key
 
-  FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`
+  FROM `spherical-entry-506811-j2.qbo_api.general_ledger`
 ),
 
 coa AS (
@@ -84,7 +84,7 @@ coa AS (
     account_sub_type,
     classification,
     active
-  FROM `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts`
+  FROM `spherical-entry-506811-j2.qbo_api.chart_of_accounts`
   WHERE name IS NOT NULL
 ),
 

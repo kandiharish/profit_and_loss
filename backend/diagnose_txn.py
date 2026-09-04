@@ -8,8 +8,8 @@ like 11429, 11632), so grouping by it tests entry completeness directly.
 
 from google.cloud import bigquery
 
-c = bigquery.Client(project="nodal-plexus-492111-e9")
-GL = "`nodal-plexus-492111-e9.warehouse_llc.general_ledger`"
+c = bigquery.Client(project="spherical-entry-506811-j2")
+GL = "`spherical-entry-506811-j2.qbo_api.general_ledger`"
 DIFF = ("ROUND(SUM(COALESCE(SAFE_CAST(debit AS NUMERIC),0))"
         " - SUM(COALESCE(SAFE_CAST(credit AS NUMERIC),0)), 2)")
 
