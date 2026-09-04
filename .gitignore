@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Build output
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment — may contain machine-specific config.
+# .env.example is committed as the template.
+.env
+.env.local
+.env*.local
+
+# Credentials — never commit these.
+*.pem
+*.key
+*credentials*.json
+service-account*.json
+application_default_credentials.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
