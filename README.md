@@ -1,9 +1,9 @@
 # Profit & Loss
 
 Next.js (Node.js) frontend, FastAPI backend, BigQuery as the only storage.
-Read-only — the app never writes to `qbo_api`.
+Read-only — the app never writes to `warehouse_llc`.
 
-    spherical-entry-506811-j2.qbo_api
+    nodal-plexus-492111-e9.warehouse_llc
       general_ledger      -> all amounts
       chart_of_accounts   -> account_type, used for classification
 
@@ -77,7 +77,7 @@ than silently returning zeros.
 ### 1. Credentials
 
     gcloud auth application-default login
-    gcloud config set project spherical-entry-506811-j2
+    gcloud config set project nodal-plexus-492111-e9
 
 No keys in this repo. Read-only IAM is sufficient:
 `roles/bigquery.jobUser` on the project, `roles/bigquery.dataViewer` on the

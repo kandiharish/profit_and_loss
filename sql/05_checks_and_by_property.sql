@@ -10,11 +10,11 @@ WITH classified AS (
       COALESCE(SAFE_CAST(credit AS NUMERIC), 0)
         - COALESCE(SAFE_CAST(debit AS NUMERIC), 0) AS amount,
       LOWER(TRIM(account_name)) AS name_key
-    FROM `spherical-entry-506811-j2.qbo_api.general_ledger`
+    FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`
   ),
   coa AS (
     SELECT LOWER(TRIM(name)) AS name_key, account_type
-    FROM `spherical-entry-506811-j2.qbo_api.chart_of_accounts`
+    FROM `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts`
     WHERE name IS NOT NULL
   )
   SELECT

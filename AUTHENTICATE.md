@@ -13,7 +13,7 @@ this BigQuery project, and approve the request.
 
 Then set the project:
 
-    gcloud config set project spherical-entry-506811-j2
+    gcloud config set project nodal-plexus-492111-e9
 
 ## What this does
 
@@ -30,8 +30,8 @@ Read-only is enough:
 
 | Role | Scope |
 |---|---|
-| `roles/bigquery.jobUser` | project `spherical-entry-506811-j2` |
-| `roles/bigquery.dataViewer` | dataset `qbo_api` |
+| `roles/bigquery.jobUser` | project `nodal-plexus-492111-e9` |
+| `roles/bigquery.dataViewer` | dataset `warehouse_llc` |
 
 If you can already run queries in the BigQuery console with this account,
 you almost certainly have both.

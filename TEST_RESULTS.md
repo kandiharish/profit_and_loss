@@ -1,6 +1,6 @@
 # Test results
 
-Project `spherical-entry-506811-j2`, dataset `qbo_api`.
+Project `nodal-plexus-492111-e9`, dataset `warehouse_llc`.
 
 **The ledger changed since the last run** — it now holds **16,234 rows,
 2018-01-01 → 2026-09-01** (previously 772 rows, 2026 only). The historical

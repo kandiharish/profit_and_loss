@@ -28,7 +28,7 @@ SELECT
   LOWER(TRIM(name)) AS name_key,
   COUNT(*)          AS coa_rows,
   STRING_AGG(DISTINCT account_type, ' | ') AS types
-FROM `spherical-entry-506811-j2.qbo_api.chart_of_accounts`
+FROM `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts`
 GROUP BY name_key
 HAVING COUNT(*) > 1
 ORDER BY coa_rows DESC;
@@ -43,8 +43,8 @@ ORDER BY coa_rows DESC;
 SELECT
   gl.account_name,
   COUNT(*) AS gl_rows
-FROM `spherical-entry-506811-j2.qbo_api.general_ledger` gl
-LEFT JOIN `spherical-entry-506811-j2.qbo_api.chart_of_accounts` coa
+FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger` gl
+LEFT JOIN `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts` coa
   ON LOWER(TRIM(gl.account_name)) = LOWER(TRIM(coa.name))
 WHERE coa.name IS NULL
   AND gl.account_name IS NOT NULL
@@ -57,10 +57,10 @@ ORDER BY gl_rows DESC;
 --     joined_rows MUST equal gl_rows. Greater = fan-out (2a).
 -- ---------------------------------------------------------------------------
 SELECT
-  (SELECT COUNT(*) FROM `spherical-entry-506811-j2.qbo_api.general_ledger`) AS gl_rows,
+  (SELECT COUNT(*) FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`) AS gl_rows,
   (SELECT COUNT(*)
-     FROM `spherical-entry-506811-j2.qbo_api.general_ledger` gl
-     LEFT JOIN `spherical-entry-506811-j2.qbo_api.chart_of_accounts` coa
+     FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger` gl
+     LEFT JOIN `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts` coa
        ON LOWER(TRIM(gl.account_name)) = LOWER(TRIM(coa.name))
   ) AS joined_rows;
 
@@ -76,7 +76,7 @@ SELECT
   SUM(COALESCE(SAFE_CAST(CAST(debit  AS STRING) AS NUMERIC), 0))
     - SUM(COALESCE(SAFE_CAST(CAST(credit AS STRING) AS NUMERIC), 0)) AS should_be_zero,
   COUNT(*) AS rows_checked
-FROM `spherical-entry-506811-j2.qbo_api.general_ledger`;
+FROM `nodal-plexus-492111-e9.warehouse_llc.general_ledger`;
 
 
 -- ---------------------------------------------------------------------------
@@ -86,6 +86,6 @@ SELECT
   account_type,
   account_sub_type,
   COUNT(*) AS accounts
-FROM `spherical-entry-506811-j2.qbo_api.chart_of_accounts`
+FROM `nodal-plexus-492111-e9.warehouse_llc.chart_of_accounts`
 GROUP BY account_type, account_sub_type
 ORDER BY account_type, account_sub_type;
