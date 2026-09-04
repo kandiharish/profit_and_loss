@@ -28,7 +28,10 @@ def get_client() -> bigquery.Client:
         info = json.loads(settings.google_credentials_json)
         creds = service_account.Credentials.from_service_account_info(
             info,
-            scopes=["https://www.googleapis.com/auth/bigquery.readonly"],
+            scopes=[
+                "https://www.googleapis.com/auth/bigquery",
+                "https://www.googleapis.com/auth/cloud-platform",
+            ],
         )
         return bigquery.Client(project=settings.bq_project, credentials=creds)
     # Fallback: local ADC (gcloud auth application-default login)
