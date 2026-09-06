@@ -23,6 +23,9 @@ build/
 *credentials*.json
 service-account*.json
 application_default_credentials.json
+spherical-entry-*.json
+nodal-plexus-*.json
+backend/*.json
 
 # Editor / OS
 .vscode/
