@@ -13,10 +13,10 @@ import urllib.request
 from google.cloud import bigquery
 
 API = "http://127.0.0.1:8000"
-DS = "spherical-entry-506811-j2.qbo_api"
+DS = "nodal-plexus-492111-e9.warehouse_llc"
 START, END = "2026-01-01", "2026-12-31"
 
-client = bigquery.Client(project="spherical-entry-506811-j2")
+client = bigquery.Client(project="nodal-plexus-492111-e9")
 FAILURES = []
 
 

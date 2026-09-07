@@ -4,8 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    bq_project: str = "spherical-entry-506811-j2"
-    bq_dataset: str = "qbo_api"
+    bq_project: str = "nodal-plexus-492111-e9"
+    bq_dataset: str = "warehouse_llc"
 
     # A query that would scan more than this FAILS instead of billing.
     bq_max_bytes_billed: int = 10_000_000_000
