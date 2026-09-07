@@ -24,7 +24,7 @@ function stripCode(name: string) {
 
 export default function Page() {
   const [filters, setFilters] = useState<Filters>({
-    start: `${YEAR}-01-01`,
+    start: "2018-01-01",
     // Local calendar date, not toISOString() -- see the note on iso() in
     // FilterBar.tsx. In UTC+ timezones toISOString() yields yesterday.
     end: todayLocal(),
