@@ -2,31 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #ffffff;
-  --surface: #f8fafc;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --muted: #64748b;
-  --accent: #1d4ed8;
-  --negative: #b91c1c;
+.cwc-neo {
+  /* Light theme */
+  --color-page: #f8fafc;
+  --color-card: #ffffff;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-input: #f1f5f9;
+  --neo-accent: #06b6d4; /* teal-cyan */
+  --positive: #10b981;
+  --negative: #ef4444;
+
+  --shadow-layered: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b1120;
-    --surface: #111827;
-    --border: #1f2937;
-    --text: #e5e7eb;
-    --muted: #94a3b8;
-    --accent: #60a5fa;
-    --negative: #f87171;
-  }
+
+
+.cwc-surfaces {
+  background: var(--color-page);
+  color: var(--color-ink);
+  min-height: 100vh;
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
+.panel {
+  background: var(--color-card);
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-layered);
 }
 
 /* Tabular figures so columns of numbers align on the decimal. */

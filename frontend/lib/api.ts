@@ -92,6 +92,22 @@ export function fetchDrilldown(
   );
 }
 
+export type TrendPoint = {
+  period: string;
+  pnl_section: string;
+  amount: number;
+};
+
+export function fetchTrend(
+  start: string,
+  end: string,
+  department?: string
+) {
+  const q = new URLSearchParams({ start_date: start, end_date: end });
+  if (department) q.set("department", department);
+  return get<{ points: TrendPoint[] }>(`/api/pnl/trend?${q}`);
+}
+
 export type Department = {
   /** Raw value — the filter key. Amounts never merge across two of these. */
   department: string;

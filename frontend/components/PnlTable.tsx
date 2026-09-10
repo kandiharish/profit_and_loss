@@ -66,7 +66,7 @@ export default function PnlTable({
   }) => {
     const pct = variancePct(now, then, isExpense);
     if (pct === null)
-      return <td className="num px-3 py-1.5 text-xs text-[var(--muted)]">—</td>;
+      return <td className="num px-3 py-1.5 text-xs text-[var(--color-muted)]">—</td>;
     return (
       <td
         className="num px-3 py-1.5 text-xs"
@@ -85,24 +85,21 @@ export default function PnlTable({
     statement.subtotals.filter((s) => s.after === key);
 
   return (
-    <div
-      className="overflow-x-auto rounded-lg border"
-      style={{ borderColor: "var(--border)" }}
-    >
+    <div className="panel overflow-x-auto">
       <table className="w-full min-w-[520px] text-sm">
         <thead>
           <tr
             className="text-xs uppercase tracking-wide"
-            style={{ background: "var(--surface)", color: "var(--muted)" }}
+            style={{ color: "var(--color-muted)" }}
           >
-            <th className="px-3 py-2 text-left font-medium">Account</th>
-            <th className="px-3 py-2 text-right font-medium">Amount</th>
+            <th className="sticky top-0 z-10 bg-[var(--color-card)] px-3 py-2 text-left font-medium">Account</th>
+            <th className="sticky top-0 z-10 bg-[var(--color-card)] px-3 py-2 text-right font-medium">Amount</th>
             {showCompare && (
               <>
-                <th className="px-3 py-2 text-right font-medium">
+                <th className="sticky top-0 z-10 bg-[var(--color-card)] px-3 py-2 text-right font-medium">
                   {comparisonLabel ?? "Prior"}
                 </th>
-                <th className="px-3 py-2 text-right font-medium">Δ</th>
+                <th className="sticky top-0 z-10 bg-[var(--color-card)] px-3 py-2 text-right font-medium">Δ</th>
               </>
             )}
           </tr>
@@ -113,15 +110,15 @@ export default function PnlTable({
             return (
               <Fragment key={section.key}>
                 <tr
-                  className="cursor-pointer border-t font-medium hover:bg-[var(--surface)]"
-                  style={{ borderColor: "var(--border)" }}
+                  className="cursor-pointer border-t font-medium hover:bg-[var(--color-card)]"
+                  style={{ borderColor: "var(--color-line)" }}
                   onClick={() => setOpen((o) => ({ ...o, [section.key]: !isOpen }))}
                 >
                   <td className="px-3 py-2">
                     <span className="inline-flex items-center gap-1.5">
                       {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                       {section.label}
-                      <span className="text-xs font-normal text-[var(--muted)]">
+                      <span className="text-xs font-normal text-[var(--color-muted)]">
                         ({section.accounts.length})
                       </span>
                     </span>
@@ -129,7 +126,7 @@ export default function PnlTable({
                   <td className="num px-3 py-2">{fmt(section.total)}</td>
                   {showCompare && (
                     <>
-                      <td className="num px-3 py-2 text-[var(--muted)]">
+                      <td className="num px-3 py-2 text-[var(--color-muted)]">
                         {fmt(priorSection(section.key))}
                       </td>
                       <Delta
@@ -145,8 +142,8 @@ export default function PnlTable({
                   section.accounts.map((a) => (
                     <tr
                       key={a.account_name}
-                      className="border-t hover:bg-[var(--surface)]"
-                      style={{ borderColor: "var(--border)" }}
+                      className="border-t hover:bg-[var(--color-card)]"
+                      style={{ borderColor: "var(--color-line)" }}
                     >
                       <td className="px-3 py-1.5 pl-9">
                         <button
@@ -160,7 +157,7 @@ export default function PnlTable({
                       <td className="num px-3 py-1.5">{fmt(a.amount)}</td>
                       {showCompare && (
                         <>
-                          <td className="num px-3 py-1.5 text-[var(--muted)]">
+                          <td className="num px-3 py-1.5 text-[var(--color-muted)]">
                             {fmt(priorAccount(a.account_name))}
                           </td>
                           {/* Accounts inherit their section's nature. */}
@@ -179,15 +176,15 @@ export default function PnlTable({
                     key={st.key}
                     className="border-t-2 font-semibold"
                     style={{
-                      borderColor: "var(--border)",
-                      background: "var(--surface)",
+                      borderColor: "var(--color-line)",
+                      background: "var(--color-card)",
                     }}
                   >
                     <td className="px-3 py-2">{st.label}</td>
                     <td className="num px-3 py-2">{fmt(st.amount)}</td>
                     {showCompare && (
                       <>
-                        <td className="num px-3 py-2 text-[var(--muted)]">
+                        <td className="num px-3 py-2 text-[var(--color-muted)]">
                           {fmt(priorSubtotal(st.key))}
                         </td>
                         <Delta now={st.amount} then={priorSubtotal(st.key)} />
