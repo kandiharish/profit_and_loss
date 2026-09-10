@@ -158,7 +158,10 @@ export default function PnlCharts({
                 }}
                 itemStyle={{ color: "#e2e8f0", fontSize: 12 }}
                 labelStyle={{ color: "#94a3b8", fontSize: 11, marginBottom: "6px" }}
-                formatter={(value: number) => [`$${Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, undefined]}
+                formatter={(value: unknown) => {
+                  const n = typeof value === "number" ? value : 0;
+                  return [`$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, undefined];
+                }}
               />
               {/* Custom legend */}
               <Line type="monotone" dataKey="Revenue" name="Revenue" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: "#10b981" }} activeDot={{ r: 5 }} />
@@ -223,7 +226,10 @@ export default function PnlCharts({
                       padding: "8px 12px",
                     }}
                     itemStyle={{ color: "#e2e8f0", fontSize: 12 }}
-                    formatter={(value: number) => [`$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, undefined]}
+                    formatter={(value: unknown) => {
+                    const n = typeof value === "number" ? value : 0;
+                    return [`$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, undefined];
+                  }}
                   />
                 </PieChart>
               </ResponsiveContainer>
