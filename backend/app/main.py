@@ -61,7 +61,16 @@ async def bq_error_handler(_: Request, exc: gexc.GoogleAPIError):
         hint = ("Query would scan more than the configured limit. Narrow the "
                 "date range or raise BQ_MAX_BYTES_BILLED in .env.")
     elif "not found" in low:
-        hint = "Check the project/dataset in .env and that the tables exist."
+        # Name the reference that was actually used. The generic advice sent
+        # people to .env, which is not even present on a deployed host --
+        # there the value comes from the dashboard, and a stale BQ_DATASET
+        # combined with a newer default BQ_GL_TABLE points at a table that
+        # has never existed. Printing the resolved reference makes that
+        # obvious instead of a guessing game.
+        hint = (f"Table not found. The app is configured to read "
+                f"`{settings.gl_table_ref}`. Check BQ_PROJECT, BQ_DATASET and "
+                f"BQ_GL_TABLE (set in the host's environment when deployed, "
+                f"in backend/.env locally).")
     elif "permission" in low or "denied" in low:
         hint = ("The signed-in account needs roles/bigquery.jobUser on the "
                 "project and roles/bigquery.dataViewer on the dataset.")
