@@ -8,37 +8,53 @@ import PnlTable from "@/components/PnlTable";
 import RecentHighlights from "@/components/RecentHighlights";
 import PropertyBreakdown from "@/components/PropertyBreakdown";
 import {
+  fetchCompanies,
   fetchDateRange,
   fetchDepartments,
-  fetchDrilldown,
   fetchStatement,
   fetchTrend,
-  fmt,
 } from "@/lib/api";
 import PnlCharts from "@/components/PnlCharts";
+import StatementTabs, { type TabKey } from "@/components/StatementTabs";
+import ThemeToggle from "@/components/ThemeToggle";
+import BalanceSheetTable from "@/components/BalanceSheetTable";
+import LedgerEntries from "@/components/LedgerEntries";
+import { fetchBalanceSheet } from "@/lib/api";
 import { todayLocal } from "@/lib/dates";
 
-const YEAR = new Date().getFullYear();
+/**
+ * Strapline for the active tab.
+ *
+ * There is no heading any more: the tabs sit where it was and already name
+ * the view, so an <h1> would just repeat the selected tab back at the user.
+ */
+const TAB_SUBTITLE: Record<TabKey, string> = {
+  balance_sheet: "Assets, liabilities and equity as at a date",
+  pnl: "Track income and expenses across your properties",
+  ledger: "Every general ledger line behind the statements",
+};
 
-/** Strip the GL code for display, matching the server-side rule. */
-function stripCode(name: string) {
-  const m = name.match(/^[0-9]+(-[0-9]+)*\s+(\S.*)$/);
-  return m ? m[2] : name;
-}
+const YEAR = new Date().getFullYear();
 
 export default function Page() {
   const defaultFilters: Filters = {
     start: "2018-01-01",
     end: todayLocal(),
     department: "",
+    company: "",
     compareTo: "prior_year",
   };
   const [filters, setFilters] = useState<Filters>(defaultFilters);
-  const [drill, setDrill] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabKey>("pnl");
 
   const depts = useQuery({
     queryKey: ["departments"],
     queryFn: fetchDepartments,
+  });
+
+  const companies = useQuery({
+    queryKey: ["companies"],
+    queryFn: fetchCompanies,
   });
 
   const loaded = useQuery({
@@ -58,8 +74,11 @@ export default function Page() {
         filters.start,
         filters.end,
         filters.department || undefined,
-        filters.compareTo || undefined
+        filters.compareTo || undefined,
+        filters.company || undefined
       ),
+    // Each tab pays for its own BigQuery jobs, and only while it is showing.
+    enabled: tab === "pnl",
   });
 
   const trend = useQuery({
@@ -68,72 +87,91 @@ export default function Page() {
       fetchTrend(
         filters.start,
         filters.end,
-        filters.department || undefined
+        filters.department || undefined,
+        filters.company || undefined
       ),
+    enabled: tab === "pnl",
   });
 
-  const drilldown = useQuery({
-    queryKey: ["drilldown", filters.start, filters.end, filters.department, drill],
+  // A balance sheet is a position, not a period: only the To date applies.
+  const balanceSheet = useQuery({
+    queryKey: ["balance-sheet", filters.end, filters.department, filters.company],
     queryFn: () =>
-      fetchDrilldown(
-        filters.start,
+      fetchBalanceSheet(
         filters.end,
-        drill!,
-        filters.department || undefined
+        filters.department || undefined,
+        filters.company || undefined
       ),
-    enabled: Boolean(drill),
+    enabled: tab === "balance_sheet",
   });
+
+  /**
+   * Every entry behind a statement figure lives on its own route, so it can
+   * be opened in a new tab, deep-linked and left with the Back button. The
+   * whole filter travels in the URL; `expected` lets that page prove it
+   * reconciles to the figure that was clicked.
+   */
+  const entriesHref = (
+    sectionKey: string,
+    ledgerName: string,
+    amount: number
+  ) => {
+    const section = statement.data?.current.sections.find(
+      (s) => s.key === sectionKey
+    );
+    const q = new URLSearchParams({
+      ledger: ledgerName,
+      start: filters.start,
+      end: filters.end,
+      expected: String(amount),
+    });
+    if (section) q.set("section", section.label);
+    if (filters.company) q.set("company", filters.company);
+    if (filters.department) q.set("department", filters.department);
+    return `/entries?${q}`;
+  };
+
+  // The badge should describe the tab being looked at, not whichever query
+  // happened to resolve last.
+  const activeQuery =
+    tab === "pnl" ? statement : tab === "balance_sheet" ? balanceSheet : null;
+  const tabIsFresh = Boolean(
+    activeQuery?.isSuccess && !activeQuery.isFetching
+  );
 
   return (
     <main className="relative min-w-0 flex-1 px-10 py-6 space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        {/* Left: icon + title + subtitle */}
+        {/* Left: icon + tabs (they are the heading) + strapline */}
         <div className="flex items-start gap-3">
           <div
-            className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 mt-0.5"
-            style={{ background: "#dbeafe", color: "#2563eb" }}
+            className="flex items-center justify-center w-10 h-10 rounded flex-shrink-0"
+            style={{ background: "var(--tint-blue)", color: "var(--tint-blue-ink)" }}
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
             </svg>
           </div>
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2 text-[var(--color-ink)]">
-              Profit &amp; Loss
-              {statement.isSuccess && !statement.isFetching && (
+            <div className="flex flex-wrap items-center gap-2">
+              <StatementTabs active={tab} onChange={setTab} />
+              {tabIsFresh && (
                 <span
-                  className="text-xs font-normal px-2 py-0.5 rounded-full border"
-                  style={{ background: "#dcfce7", color: "#16a34a", borderColor: "#bbf7d0" }}
+                  className="text-xs px-2 py-0.5 rounded-full border"
+                  style={{ background: "var(--tint-green)", color: "var(--tint-green-ink)", borderColor: "var(--color-line)" }}
                 >
                   ● Updated just now
                 </span>
               )}
-            </h1>
-            <p className="text-sm text-[var(--color-muted)] mt-0.5">
-              Track income and expenses across your properties
+            </div>
+            <p className="text-sm text-[var(--color-muted)] mt-1">
+              {TAB_SUBTITLE[tab]}
             </p>
           </div>
         </div>
 
-        {/* Right: info card */}
-        {loaded.data && (
-          <div
-            className="panel flex items-start gap-2.5 px-4 py-3 max-w-sm"
-            style={{ borderRadius: "12px" }}
-          >
-            <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-[var(--color-muted)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <div className="text-xs text-[var(--color-muted)] leading-relaxed">
-              <p>Credit positive, debit negative — expenses show as negative.</p>
-              <p className="mt-0.5">
-                Ledger data loaded: <span className="font-medium text-[var(--color-ink)]">{loaded.data.min_date}</span> to{" "}
-                <span className="font-medium text-[var(--color-ink)]">{loaded.data.max_date}</span>
-                {" "}({loaded.data.row_count.toLocaleString()} rows)
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Right: theme */}
+        <ThemeToggle />
       </header>
 
       <FilterBar
@@ -142,6 +180,12 @@ export default function Page() {
           depts.data?.departments.map((d) => ({
             value: d.department,
             label: d.department_display,
+          })) ?? []
+        }
+        companies={
+          companies.data?.companies.map((c) => ({
+            value: c.company_name,
+            label: c.company_name,
           })) ?? []
         }
         onChange={setFilters}
@@ -157,24 +201,55 @@ export default function Page() {
         </div>
       )}
 
-      {(statement.isLoading || trend.isLoading) && (
+      {tab === "balance_sheet" && (
+        <>
+          {balanceSheet.isLoading && (
+            <div className="panel h-[420px] animate-pulse bg-[var(--color-hover)] opacity-50" />
+          )}
+          {balanceSheet.isError && (
+            <div
+              className="rounded border p-4 text-sm"
+              style={{ borderColor: "var(--negative)", color: "var(--negative)" }}
+            >
+              <div className="font-medium">Could not load the balance sheet</div>
+              <div className="mt-1">{(balanceSheet.error as Error)?.message}</div>
+            </div>
+          )}
+          {balanceSheet.data && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <BalanceSheetTable data={balanceSheet.data} />
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === "ledger" && (
+        <LedgerEntries
+          start={filters.start}
+          end={filters.end}
+          department={filters.department || undefined}
+          company={filters.company || undefined}
+        />
+      )}
+
+      {tab === "pnl" && (statement.isLoading || trend.isLoading) && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 animate-pulse">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="panel h-[90px] bg-[var(--color-input)] opacity-50"></div>
+              <div key={i} className="panel h-[90px] bg-[var(--color-hover)] opacity-50"></div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-pulse">
-            <div className="panel lg:col-span-2 h-[350px] bg-[var(--color-input)] opacity-50"></div>
-            <div className="panel h-[350px] bg-[var(--color-input)] opacity-50"></div>
+            <div className="panel lg:col-span-2 h-[350px] bg-[var(--color-hover)] opacity-50"></div>
+            <div className="panel h-[350px] bg-[var(--color-hover)] opacity-50"></div>
           </div>
-          <div className="panel h-[400px] bg-[var(--color-input)] opacity-50 animate-pulse"></div>
+          <div className="panel h-[400px] bg-[var(--color-hover)] opacity-50 animate-pulse"></div>
         </div>
       )}
 
-      {(statement.isError || trend.isError) && (
+      {tab === "pnl" && (statement.isError || trend.isError) && (
         <div
-          className="rounded-lg border p-4 text-sm"
+          className="rounded border p-4 text-sm"
           style={{ borderColor: "var(--negative)", color: "var(--negative)" }}
         >
           <div className="font-medium">Could not load the P&amp;L</div>
@@ -182,7 +257,7 @@ export default function Page() {
         </div>
       )}
 
-      {statement.data && (
+      {tab === "pnl" && statement.data && (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
           <KpiStrip current={statement.data.current.kpis} comparison={statement.data.comparison?.kpis} />
 
@@ -204,7 +279,7 @@ export default function Page() {
               comparisonLabel={
                 filters.compareTo === "prior_year" ? "Prior year" : "Prior period"
               }
-              onDrilldown={setDrill}
+              hrefFor={entriesHref}
             />
           </div>
 
@@ -215,70 +290,6 @@ export default function Page() {
         </div>
       )}
 
-      {drill && (
-        <div className="panel p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-medium">{stripCode(drill)}</h2>
-            <button
-              className="text-sm text-[var(--color-muted)] hover:underline"
-              onClick={() => setDrill(null)}
-            >
-              Close
-            </button>
-          </div>
-
-          {drilldown.isLoading && (
-            <p className="text-sm text-[var(--color-muted)]">
-              Loading transactions&hellip;
-            </p>
-          )}
-
-          {drilldown.data && drilldown.data.lines.length === 0 && (
-            <p className="text-sm text-[var(--color-muted)]">
-              No transactions in this period.
-            </p>
-          )}
-
-          {drilldown.data && drilldown.data.lines.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead>
-                  <tr className="text-xs uppercase text-[var(--color-muted)]">
-                    <th className="px-2 py-1.5 text-left">Date</th>
-                    <th className="px-2 py-1.5 text-left">Type</th>
-                    <th className="px-2 py-1.5 text-left">Doc</th>
-                    <th className="px-2 py-1.5 text-left">Name</th>
-                    <th className="px-2 py-1.5 text-left">Description</th>
-                    <th className="px-2 py-1.5 text-left">Offset account</th>
-                    <th className="px-2 py-1.5 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {drilldown.data.lines.map((l, i) => (
-                    <tr
-                      key={i}
-                      className="border-t"
-                      style={{ borderColor: "var(--color-line)" }}
-                    >
-                      <td className="px-2 py-1.5">{l.date}</td>
-                      <td className="px-2 py-1.5">{l.transaction_type ?? ""}</td>
-                      <td className="px-2 py-1.5">{l.document_number ?? ""}</td>
-                      <td className="px-2 py-1.5">{l.counterparty ?? ""}</td>
-                      <td className="px-2 py-1.5 text-[var(--color-muted)]">
-                        {l.description ?? ""}
-                      </td>
-                      <td className="px-2 py-1.5 text-[var(--color-muted)]">
-                        {l.split_account ? stripCode(l.split_account) : ""}
-                      </td>
-                      <td className="num px-2 py-1.5">{fmt(l.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
     </main>
   );
 }

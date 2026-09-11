@@ -35,17 +35,20 @@ def statement(
     start_date: date = Query(...),
     end_date: date = Query(...),
     department: str | None = Query(None, description="Property / LLC filter"),
+    company: str | None = Query(None, description="Legal entity (company_name)"),
     compare_to: str | None = Query(None, pattern="^(prior_period|prior_year)$"),
 ):
     _check(start_date, end_date)
 
-    sql, params = queries.statement(start_date, end_date, department)
+    sql, params = queries.statement(start_date, end_date, department,
+                                    company=company)
     current = build(run(sql, params))
 
     comparison = None
     if compare_to:
         c_start, c_end = _comparison_range(start_date, end_date, compare_to)
-        c_sql, c_params = queries.statement(c_start, c_end, department)
+        c_sql, c_params = queries.statement(c_start, c_end, department,
+                                           company=company)
         comparison = {
             "basis": compare_to,
             "period": {"start": c_start, "end": c_end},
@@ -55,6 +58,7 @@ def statement(
     return {
         "period": {"start": start_date, "end": end_date},
         "department": department,
+        "company": company,
         "current": current,
         "comparison": comparison,
     }
@@ -65,9 +69,10 @@ def trend(
     start_date: date = Query(...),
     end_date: date = Query(...),
     department: str | None = Query(None),
+    company: str | None = Query(None, description="Legal entity (company_name)"),
 ):
     _check(start_date, end_date)
-    sql, params = queries.trend(start_date, end_date, department)
+    sql, params = queries.trend(start_date, end_date, department, company)
     return {"points": run(sql, params)}
 
 
@@ -75,15 +80,17 @@ def trend(
 def drilldown(
     start_date: date = Query(...),
     end_date: date = Query(...),
-    account_name: str = Query(..., min_length=1,
-                              description="RAW account name, including GL code"),
+    ledger_name: str = Query(..., min_length=1,
+                             description="Ledger group name, e.g. "
+                                         "'Inbound Handling Revenue'"),
     department: str | None = Query(None),
+    company: str | None = Query(None, description="Legal entity (company_name)"),
     limit: int = Query(500, ge=1, le=5000),
 ):
     _check(start_date, end_date)
-    sql, params = queries.drilldown(start_date, end_date, account_name,
-                                    department, limit)
-    return {"account_name": account_name, "lines": run(sql, params)}
+    sql, params = queries.drilldown(start_date, end_date, ledger_name,
+                                    department, limit, company)
+    return {"ledger_name": ledger_name, "lines": run(sql, params)}
 
 
 @router.get("/by-property")

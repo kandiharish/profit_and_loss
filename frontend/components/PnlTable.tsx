@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { fmt, type Statement, type Subtotal } from "@/lib/api";
 import {
@@ -14,36 +15,44 @@ type Props = {
   statement: Statement;
   comparison?: Statement | null;
   comparisonLabel?: string;
-  onDrilldown?: (rawAccountName: string) => void;
+  /**
+   * Builds the drill-down URL for a ledger. A real href rather than a click
+   * handler, so a row can be middle-clicked, opened in a new tab and
+   * deep-linked.
+   */
+  hrefFor?: (sectionKey: string, ledgerName: string, amount: number) => string;
 };
 
 /**
  * The statement grid.
  *
- * Two deliberate omissions, per spec:
- *   - no account sub-type column
- *   - account names show WITHOUT their GL code (display_name), while
- *     account_name (with the code) is kept as the drill-down key
+ * Two levels, per spec:
+ *   - a SECTION row ("Operating Revenue") from Conso_GL_Mapping.Section
+ *   - expanded, its LEDGER rows ("Inbound Handling Revenue") from
+ *     Conso_GL_Mapping.Ledger_Name
+ *
+ * Individual GL accounts are deliberately not a row here -- they sit one
+ * level further down, reached by clicking a ledger to drill in.
+ *
+ * Still omitted, per spec: no account sub-type column.
  */
 export default function PnlTable({
   statement,
   comparison,
   comparisonLabel,
-  onDrilldown,
+  hrefFor,
 }: Props) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const showCompare = Boolean(comparison);
 
-  // Match on the raw name: display names could collide once codes are
-  // stripped, raw names cannot.
-  const priorAccount = (rawName: string) => {
-    if (!comparison) return undefined;
-    for (const s of comparison.sections) {
-      const hit = s.accounts.find((a) => a.account_name === rawName);
-      if (hit) return hit.amount;
-    }
-    return undefined;
-  };
+  // Match within the SAME section: Ledger_Name is not unique on its own --
+  // "Rental Income - Non-Operating" exists under both Operating Revenue and
+  // Other Income -- so searching across sections could pair a ledger with
+  // the wrong prior-year figure.
+  const priorLedger = (sectionKey: string, ledgerName: string) =>
+    comparison?.sections
+      .find((s) => s.key === sectionKey)
+      ?.ledgers.find((l) => l.ledger_name === ledgerName)?.amount;
   const priorSection = (key: string) =>
     comparison?.sections.find((s) => s.key === key)?.total;
   const priorSubtotal = (key: string) =>
@@ -110,7 +119,7 @@ export default function PnlTable({
             return (
               <Fragment key={section.key}>
                 <tr
-                  className="cursor-pointer border-t font-medium hover:bg-[var(--color-card)]"
+                  className="cursor-pointer border-t font-medium hover:bg-[var(--color-hover)]"
                   style={{ borderColor: "var(--color-line)" }}
                   onClick={() => setOpen((o) => ({ ...o, [section.key]: !isOpen }))}
                 >
@@ -119,7 +128,7 @@ export default function PnlTable({
                       {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                       {section.label}
                       <span className="text-xs font-normal text-[var(--color-muted)]">
-                        ({section.accounts.length})
+                        ({section.ledgers.length})
                       </span>
                     </span>
                   </td>
@@ -139,31 +148,38 @@ export default function PnlTable({
                 </tr>
 
                 {isOpen &&
-                  section.accounts.map((a) => (
+                  section.ledgers.map((l) => (
                     <tr
-                      key={a.account_name}
-                      className="border-t hover:bg-[var(--color-card)]"
+                      key={l.ledger_name}
+                      className="border-t hover:bg-[var(--color-hover)]"
                       style={{ borderColor: "var(--color-line)" }}
                     >
                       <td className="px-3 py-1.5 pl-9">
-                        <button
-                          className="text-left hover:underline"
-                          onClick={() => onDrilldown?.(a.account_name)}
-                          title={a.account_name}
-                        >
-                          {a.display_name}
-                        </button>
+                        {hrefFor ? (
+                          <Link
+                            href={hrefFor(section.key, l.ledger_name, l.amount)}
+                            className="text-left hover:underline"
+                            style={{ color: "var(--link)" }}
+                            title={`${l.account_count} account${
+                              l.account_count === 1 ? "" : "s"
+                            } — open every entry behind this figure`}
+                          >
+                            {l.display_name}
+                          </Link>
+                        ) : (
+                          l.display_name
+                        )}
                       </td>
-                      <td className="num px-3 py-1.5">{fmt(a.amount)}</td>
+                      <td className="num px-3 py-1.5">{fmt(l.amount)}</td>
                       {showCompare && (
                         <>
                           <td className="num px-3 py-1.5 text-[var(--color-muted)]">
-                            {fmt(priorAccount(a.account_name))}
+                            {fmt(priorLedger(section.key, l.ledger_name))}
                           </td>
-                          {/* Accounts inherit their section's nature. */}
+                          {/* Ledgers inherit their section's nature. */}
                           <Delta
-                            now={a.amount}
-                            then={priorAccount(a.account_name)}
+                            now={l.amount}
+                            then={priorLedger(section.key, l.ledger_name)}
                             isExpense={isExpenseSection(section.key)}
                           />
                         </>

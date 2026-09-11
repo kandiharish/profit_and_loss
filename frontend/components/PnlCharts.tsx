@@ -19,6 +19,103 @@ import { Download } from "lucide-react";
 const COLORS = ["#ef4444", "#22d3ee", "#3b82f6", "#8b5cf6", "#d946ef", "#f97316", "#eab308"];
 const COLOR_LABELS = ["Amortization Expense", "Depreciation Expense", "Interest Expense", "Professional Fees", "Purchase for resale", "State Taxes", "State Taxes - Property"];
 
+/** Exact currency for tooltips, sign preserved. */
+function tooltipAmt(n: number) {
+  const body = Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  return `${n < 0 ? "-" : ""}$${body}`;
+}
+
+type TooltipRow = {
+  name?: string | number;
+  value?: number | string;
+  color?: string;
+  dataKey?: string | number;
+  payload?: { fill?: string };
+};
+
+/**
+ * Shared chart tooltip.
+ *
+ * Recharts' default renders each series as bare text, and the previous
+ * `formatter` returned `[value, undefined]` -- that `undefined` is the NAME
+ * slot, so it actively stripped the labels and left a stack of unattributed
+ * numbers. Every row now carries its series colour and name, with the value
+ * right-aligned so the figures line up in a column.
+ *
+ * Values are NOT absolute. Expenses are stored as a positive magnitude, but
+ * Profit can be negative, and the old Math.abs() showed a loss-making month
+ * as a profit while the Y axis beside it showed the same point below zero.
+ */
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TooltipRow[];
+  label?: string | number;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div
+      style={{
+        background: "rgba(15,23,42,0.94)",
+        backdropFilter: "blur(8px)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 10,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+        padding: "10px 12px",
+        minWidth: 190,
+      }}
+    >
+      {label !== undefined && label !== "" && (
+        <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 8 }}>
+          {label}
+        </div>
+      )}
+      {payload.map((row, i) => {
+        const swatch = row.color ?? row.payload?.fill ?? "#94a3b8";
+        const n = typeof row.value === "number" ? row.value : Number(row.value ?? 0);
+        return (
+          <div
+            key={`${row.dataKey ?? row.name ?? i}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 20,
+              fontSize: 12,
+              lineHeight: "20px",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 7, color: "#e2e8f0" }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: swatch,
+                  flexShrink: 0,
+                }}
+              />
+              {row.name}
+            </span>
+            <span
+              style={{
+                color: "#ffffff",
+                fontWeight: 600,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {tooltipAmt(n)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function formatAmt(n: number) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
@@ -79,9 +176,9 @@ export default function PnlCharts({
       expensesSection = statementData.current.sections.find(s => s.label.toLowerCase().includes("expense"));
     }
     if (!expensesSection) return [];
-    return expensesSection.accounts
-      .filter(a => Math.abs(a.amount) > 0)
-      .map(a => ({ name: a.display_name, value: Math.abs(a.amount) }))
+    return expensesSection.ledgers
+      .filter(l => Math.abs(l.amount) > 0)
+      .map(l => ({ name: l.display_name, value: Math.abs(l.amount) }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 7);
   }, [statementData]);
@@ -101,7 +198,7 @@ export default function PnlCharts({
         <div className="flex items-center justify-between mb-1">
           <div>
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg" style={{ background: "#dbeafe", color: "#2563eb" }}>
+              <div className="p-1.5 rounded-lg" style={{ background: "var(--tint-blue)", color: "var(--tint-blue-ink)" }}>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                   <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                 </svg>
@@ -113,7 +210,7 @@ export default function PnlCharts({
           <div className="flex items-center gap-2">
             <button
               onClick={handleCsvDownload}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border hover:bg-[var(--color-input)] transition-colors duration-150"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border hover:bg-[var(--color-hover)] transition-colors duration-150"
               style={{ borderColor: "var(--color-line)", color: "var(--color-muted)" }}
               title="Download CSV"
             >
@@ -148,25 +245,13 @@ export default function PnlCharts({
                 width={55}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "rgba(15,23,42,0.92)",
-                  backdropFilter: "blur(8px)",
-                  borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                  padding: "10px 14px",
-                }}
-                itemStyle={{ color: "#e2e8f0", fontSize: 12 }}
-                labelStyle={{ color: "#94a3b8", fontSize: 11, marginBottom: "6px" }}
-                formatter={(value: unknown) => {
-                  const n = typeof value === "number" ? value : 0;
-                  return [`$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, undefined];
-                }}
+                content={<ChartTooltip />}
+                cursor={{ stroke: "var(--color-muted)", strokeWidth: 1 }}
               />
               {/* Custom legend */}
               <Line type="monotone" dataKey="Revenue" name="Revenue" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: "#10b981" }} activeDot={{ r: 5 }} />
               <Line type="monotone" dataKey="Expenses" name="Expenses" stroke="#ef4444" strokeWidth={2} dot={{ r: 2, fill: "#ef4444" }} activeDot={{ r: 5 }} />
-              <Line type="monotone" dataKey="Profit" name="Profit" stroke="#0f172a" strokeWidth={2.5} dot={{ r: 2, fill: "#0f172a" }} activeDot={{ r: 5 }} />
+              <Line type="monotone" dataKey="Profit" name="Profit" stroke="var(--chart-profit)" strokeWidth={2.5} dot={{ r: 2, fill: "var(--chart-profit)" }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -175,7 +260,7 @@ export default function PnlCharts({
         <div className="flex items-center gap-5 mt-2 ml-1">
           {[
             { label: "Expenses", color: "#ef4444" },
-            { label: "Profit", color: "#0f172a" },
+            { label: "Profit", color: "var(--chart-profit)" },
             { label: "Revenue", color: "#10b981" },
           ].map(l => (
             <div key={l.label} className="flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
@@ -189,7 +274,7 @@ export default function PnlCharts({
       {/* Expense Breakdown */}
       <div className="panel p-5 hover:-translate-y-[1px] transition-all duration-150">
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-1.5 rounded-lg" style={{ background: "#fee2e2", color: "#dc2626" }}>
+          <div className="p-1.5 rounded-lg" style={{ background: "var(--tint-red)", color: "var(--tint-red-ink)" }}>
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
             </svg>
@@ -217,20 +302,9 @@ export default function PnlCharts({
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,23,42,0.92)",
-                      backdropFilter: "blur(8px)",
-                      borderRadius: "10px",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      padding: "8px 12px",
-                    }}
-                    itemStyle={{ color: "#e2e8f0", fontSize: 12 }}
-                    formatter={(value: unknown) => {
-                    const n = typeof value === "number" ? value : 0;
-                    return [`$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, undefined];
-                  }}
-                  />
+                  {/* Slices are unlabelled without this: a bare amount with
+                      no way to tell WHICH expense it belongs to. */}
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
               {/* Center label */}

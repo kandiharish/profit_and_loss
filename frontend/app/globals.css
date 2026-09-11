@@ -2,33 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * QuickBooks Online palette.
+ *
+ * The client reads QuickBooks all day, so the surface follows Intuit's
+ * report styling rather than anything invented here: Intuit green for
+ * primary actions, Intuit blue for links, near-black #393A3D body text on a
+ * #F4F5F8 page, hairline #D4D7DC rules, and cards that are flat with a 4px
+ * radius instead of rounded-and-shadowed.
+ *
+ * Only tokens changed. Chart series colours are hardcoded inside
+ * PnlCharts.tsx and are deliberately left alone.
+ */
 .cwc-neo {
-  /* Light theme */
-  --color-page: #f8fafc;
+  --color-page: #f4f5f8;   /* QBO app background */
   --color-card: #ffffff;
-  --color-ink: #0f172a;
-  --color-muted: #64748b;
-  --color-line: #e2e8f0;
-  --color-input: #f1f5f9;
-  --neo-accent: #06b6d4; /* teal-cyan */
-  --positive: #10b981;
-  --negative: #ef4444;
+  --color-ink: #393a3d;    /* QBO body text */
+  --color-muted: #6b6c72;  /* QBO secondary text */
+  --color-line: #d4d7dc;   /* QBO border */
+  --color-divider: #e3e5e8;/* lighter rule inside tables */
+  --color-input: #ffffff;  /* QBO inputs are white with a grey border */
+  --color-hover: #f4f5f8;  /* QBO row hover */
 
-  --shadow-layered: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
+  --neo-accent: #2ca01c;   /* Intuit / QuickBooks green */
+  --accent: #2ca01c;
+  --accent-dark: #108000;  /* pressed / hover green */
+  --accent-tint: #e3f0de;
+  --link: #0077c5;         /* QBO link blue */
+
+  --positive: #2ca01c;
+  --negative: #d52b1e;     /* Intuit red */
+
+  /* Soft tiles behind icons. QBO keeps these muted, not pastel-bright. */
+  --tint-green: #e3f0de;
+  --tint-green-ink: #108000;
+  --tint-blue: #e5f2fa;
+  --tint-blue-ink: #0077c5;
+  --tint-red: #fbe9e7;
+  --tint-red-ink: #d52b1e;
+  --tint-amber: #fff3e0;
+  --tint-amber-ink: #b06f00;
+  --tint-purple: #eeeaf6;
+  --tint-purple-ink: #6b4fa8;
+
+  /* The trend chart's Profit line. Near-black reads well on white and
+     disappears on a dark ground, so it is a token, not a literal. */
+  --chart-profit: #0f172a;
+
+  /* QBO cards are flat. A hairline does the separating, not a drop shadow. */
+  --shadow-layered: none;
 }
-
-
 
 .cwc-surfaces {
   background: var(--color-page);
   color: var(--color-ink);
   min-height: 100vh;
+  /* QBO ships "Avenir Next forINTUIT"; this is the closest widely available
+     stack, and keeps the same humanist-sans feel. */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .panel {
   background: var(--color-card);
   border: 1px solid var(--color-line);
-  border-radius: 16px;
+  border-radius: 4px;
   box-shadow: var(--shadow-layered);
 }
 
@@ -37,4 +75,62 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
+}
+
+
+/*
+ * Dark mode.
+ *
+ * Applied by data-theme="dark" on <html>, set before first paint by the
+ * inline script in layout.tsx so there is no flash of the light theme.
+ *
+ * Only the token VALUES change -- every component already reads them, so
+ * nothing here needs a per-component dark variant.
+ *
+ * The Intuit hues are lifted, not reused: #2CA01C green and #0077C5 blue
+ * are tuned for a white ground and fall below a readable contrast ratio on
+ * a dark one. The brand still reads as QuickBooks; it is just legible.
+ */
+:root[data-theme="dark"] .cwc-neo,
+:root[data-theme="dark"].cwc-neo {
+  --color-page: #16181b;
+  --color-card: #202327;
+  --color-ink: #e8eaed;
+  --color-muted: #9aa0a6;
+  --color-line: #3c4043;
+  --color-divider: #2f3236;
+  --color-input: #26292e;
+  --color-hover: #2a2e33;
+
+  --neo-accent: #3fb92c;   /* QuickBooks green, lifted for dark */
+  --accent: #4ec93a;
+  --accent-dark: #349923;
+  --accent-tint: #1e3a19;
+  --link: #6cb6f0;         /* QBO blue, lifted for dark */
+
+  --positive: #4ec93a;
+  --negative: #f4776c;     /* Intuit red, lifted for dark */
+
+  --tint-green: #1e3a19;
+  --tint-green-ink: #6fd45c;
+  --tint-blue: #17303f;
+  --tint-blue-ink: #6cb6f0;
+  --tint-red: #3d1f1c;
+  --tint-red-ink: #f4776c;
+  --tint-amber: #3a2c14;
+  --tint-amber-ink: #e0a63c;
+  --tint-purple: #2a2340;
+  --tint-purple-ink: #b09ce0;
+
+  --chart-profit: #e8eaed;
+
+  --shadow-layered: none;
+}
+
+/* Native widgets (date picker, <select> menus, scrollbars) follow the theme. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
 }

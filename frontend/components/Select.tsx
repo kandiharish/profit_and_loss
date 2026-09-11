@@ -52,12 +52,12 @@ export default function Select({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm w-full min-w-[160px] transition-all duration-150"
+        className="flex items-center gap-2 rounded border px-3 py-1.5 text-sm w-full min-w-[160px] transition-all duration-150"
         style={{
           background: "var(--color-input)",
           borderColor: open ? "var(--neo-accent)" : "var(--color-line)",
           color: "var(--color-ink)",
-          boxShadow: open ? "0 0 0 3px rgba(6,182,212,0.12)" : "none",
+          boxShadow: open ? "0 0 0 3px rgba(44,160,28,0.15)" : "none",
         }}
       >
         {icon && (
@@ -78,11 +78,31 @@ export default function Select({
       {/* Dropdown panel */}
       {open && (
         <div
-          className="absolute z-50 mt-1.5 min-w-full rounded-xl border shadow-xl overflow-hidden"
+          /*
+           * data-lenis-prevent is what actually lets this list scroll.
+           *
+           * The app runs Lenis smooth scrolling (LenisProvider), which
+           * intercepts wheel events on the document, calls preventDefault()
+           * and scrolls the WINDOW itself with its own easing. Because the
+           * browser never performs a native scroll, a nested scrollable box
+           * is bypassed entirely and overscroll-behavior has nothing to
+           * contain -- so the page moved instead of the menu. Lenis walks up
+           * from the event target and skips any subtree carrying this
+           * attribute, handing those wheel events back to the browser.
+           *
+           * The rest then does its job: max-h + overflow-y-auto make the
+           * menu scrollable (34 report periods would otherwise run the full
+           * height of the page), and overscroll-contain stops the scroll
+           * chaining onward once the list hits its own top or bottom. A
+           * short list (Company, Compare to) never becomes scrollable, so
+           * it is unaffected either way.
+           */
+          data-lenis-prevent=""
+          className="absolute z-50 mt-1 max-h-[264px] min-w-full overflow-y-auto overflow-x-hidden overscroll-contain rounded border shadow-lg"
           style={{
             background: "var(--color-card)",
             borderColor: "var(--color-line)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
             animation: "dropdownIn 120ms ease-out",
           }}
         >
@@ -98,13 +118,13 @@ export default function Select({
                 }}
                 className="flex items-center justify-between w-full px-3 py-2 text-sm text-left transition-colors duration-100"
                 style={{
-                  background: isSelected ? "rgba(6,182,212,0.08)" : "transparent",
+                  background: isSelected ? "var(--accent-tint)" : "transparent",
                   color: isSelected ? "var(--neo-accent)" : "var(--color-ink)",
                   fontWeight: isSelected ? 600 : 400,
                 }}
                 onMouseEnter={(e) => {
                   if (!isSelected)
-                    (e.currentTarget as HTMLElement).style.background = "var(--color-input)";
+                    (e.currentTarget as HTMLElement).style.background = "var(--color-hover)";
                 }}
                 onMouseLeave={(e) => {
                   if (!isSelected)
