@@ -10,16 +10,15 @@ services:
     envVars:
       - key: GOOGLE_CREDENTIALS_JSON
         sync: false          # set this manually in the Render dashboard
-      # Pinned, not sync:false. These were dashboard-managed, so a code
-      # change that moved the source left the deployment pointing at the old
-      # dataset with the new default table -- a combination that has never
-      # existed. Declaring them here keeps deploys reproducible.
+      # Pinned, not sync:false. Dashboard-managed values let a code change
+      # that moved the source leave the deployment half-migrated.
       - key: BQ_PROJECT
         value: nodal-plexus-492111-e9
-      - key: BQ_DATASET
-        value: lyson_sons
-      - key: BQ_GL_TABLE
-        value: Conso_GL_Dump_latest
+      # The whole source as one value. Splitting it across dataset + table is
+      # what allowed a stale dataset to combine with a new table name into a
+      # path nobody intended.
+      - key: BQ_TABLE_REF
+        value: nodal-plexus-492111-e9.lyson_sons.Conso_GL_Dump_latest
       - key: FRONTEND_ORIGIN
         sync: false          # e.g. https://your-frontend.onrender.com
       - key: PYTHON_VERSION

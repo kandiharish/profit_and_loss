@@ -11,12 +11,15 @@ router = APIRouter(prefix="/api/meta", tags=["meta"])
 
 @router.get("/health")
 def health():
-    return {"status": "ok", "project": settings.bq_project,
-            "dataset": settings.bq_dataset,
-            "gl_table": settings.bq_gl_table,
-            # The fully-resolved reference the queries actually use. Cheapest
-            # way to confirm a deployment is pointed where you think it is.
-            "table_ref": settings.gl_table_ref}
+    return {
+        "status": "ok",
+        "project": settings.bq_project,
+        # The single source setting the queries actually read. Cheapest way
+        # to confirm a deployment is pointed where you think it is.
+        "table_ref": settings.gl_table_ref,
+        # Legacy variables still set here but no longer used. Empty is good.
+        "ignored_legacy_settings": settings.stale_settings,
+    }
 
 
 @router.get("/departments")

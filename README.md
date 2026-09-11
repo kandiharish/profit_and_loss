@@ -27,6 +27,32 @@ is unchanged:
 `account_fully_qualified_name` is the `parent:child` path and is deliberately
 **not** used — it is NULL on every untyped row.
 
+## Configuring the source
+
+The source table is **one setting**, not three:
+
+    BQ_TABLE_REF=nodal-plexus-492111-e9.lyson_sons.Conso_GL_Dump_latest
+
+It was previously composed from `BQ_PROJECT` + `BQ_DATASET` + `BQ_GL_TABLE`,
+which let a deployment end up half-migrated: the dataset was pinned in a
+hosting dashboard and stayed on `warehouse_llc` while the table name moved
+to its new default, producing `warehouse_llc.Conso_GL_Dump_latest` — a table
+that has never existed. Which table to read is a single fact, so it is a
+single setting, and no combination of half-updated variables can produce a
+path nobody intended.
+
+`BQ_PROJECT` remains separate: it is the billing/job project, and jobs can be
+billed to one project while reading a table in another.
+
+`BQ_DATASET` and `BQ_GL_TABLE` are ignored. If either is still set anywhere,
+the app logs a warning at startup and `/api/meta/health` lists it under
+`ignored_legacy_settings` — a value that is set but unused is worth saying
+out loud.
+
+    GET /api/meta/health
+    { "table_ref": "…lyson_sons.Conso_GL_Dump_latest",
+      "ignored_legacy_settings": {} }
+
 ## Accounting rules encoded here
 
 These were set by the data owner and are load-bearing. Changing any of them

@@ -68,9 +68,9 @@ async def bq_error_handler(_: Request, exc: gexc.GoogleAPIError):
         # has never existed. Printing the resolved reference makes that
         # obvious instead of a guessing game.
         hint = (f"Table not found. The app is configured to read "
-                f"`{settings.gl_table_ref}`. Check BQ_PROJECT, BQ_DATASET and "
-                f"BQ_GL_TABLE (set in the host's environment when deployed, "
-                f"in backend/.env locally).")
+                f"`{settings.gl_table_ref}`. That comes from a single setting, "
+                f"BQ_TABLE_REF (the host's environment when deployed, "
+                f"backend/.env locally).")
     elif "permission" in low or "denied" in low:
         hint = ("The signed-in account needs roles/bigquery.jobUser on the "
                 "project and roles/bigquery.dataViewer on the dataset.")
