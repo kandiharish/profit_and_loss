@@ -10,10 +10,16 @@ services:
     envVars:
       - key: GOOGLE_CREDENTIALS_JSON
         sync: false          # set this manually in the Render dashboard
+      # Pinned, not sync:false. These were dashboard-managed, so a code
+      # change that moved the source left the deployment pointing at the old
+      # dataset with the new default table -- a combination that has never
+      # existed. Declaring them here keeps deploys reproducible.
       - key: BQ_PROJECT
-        sync: false
+        value: nodal-plexus-492111-e9
       - key: BQ_DATASET
-        sync: false
+        value: lyson_sons
+      - key: BQ_GL_TABLE
+        value: Conso_GL_Dump_latest
       - key: FRONTEND_ORIGIN
         sync: false          # e.g. https://your-frontend.onrender.com
       - key: PYTHON_VERSION
