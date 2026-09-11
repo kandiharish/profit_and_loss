@@ -23,8 +23,8 @@ export default function RecentHighlights({
   const highlights = [
     {
       icon: TrendingUp,
-      iconBg: revPct !== null && revPct >= 0 ? "#dcfce7" : "#fee2e2",
-      iconColor: revPct !== null && revPct >= 0 ? "#16a34a" : "#dc2626",
+      iconBg: revPct !== null && revPct >= 0 ? "var(--tint-green)" : "var(--tint-red)",
+      iconColor: revPct !== null && revPct >= 0 ? "var(--tint-green-ink)" : "var(--tint-red-ink)",
       title: revPct !== null && revPct >= 0 ? "Revenue Increased" : "Revenue Decreased",
       description:
         revPct !== null
@@ -34,8 +34,8 @@ export default function RecentHighlights({
     },
     {
       icon: TrendingDown,
-      iconBg: netPct !== null && netPct >= 0 ? "#dcfce7" : "#fee2e2",
-      iconColor: netPct !== null && netPct >= 0 ? "#16a34a" : "#dc2626",
+      iconBg: netPct !== null && netPct >= 0 ? "var(--tint-green)" : "var(--tint-red)",
+      iconColor: netPct !== null && netPct >= 0 ? "var(--tint-green-ink)" : "var(--tint-red-ink)",
       title: netPct !== null && netPct >= 0 ? "Net Income Increased" : "Net Income Decreased",
       description:
         netPct !== null
@@ -45,8 +45,8 @@ export default function RecentHighlights({
     },
     {
       icon: Award,
-      iconBg: "#dbeafe",
-      iconColor: "#2563eb",
+      iconBg: "var(--tint-blue)",
+      iconColor: "var(--tint-blue-ink)",
       title: margin !== null && margin > 80 ? "High Margin" : margin !== null && margin > 50 ? "Good Margin" : "Margin Insight",
       description:
         margin !== null
@@ -56,8 +56,8 @@ export default function RecentHighlights({
     },
     {
       icon: ShieldCheck,
-      iconBg: expPct !== null && expPct <= 0 ? "#dcfce7" : "#fef9c3",
-      iconColor: expPct !== null && expPct <= 0 ? "#16a34a" : "#ca8a04",
+      iconBg: expPct !== null && expPct <= 0 ? "var(--tint-green)" : "var(--tint-amber)",
+      iconColor: expPct !== null && expPct <= 0 ? "var(--tint-green-ink)" : "var(--tint-amber-ink)",
       title: expPct !== null && expPct <= 0 ? "Expense Control" : "Expenses Up",
       description:
         expPct !== null
@@ -86,7 +86,7 @@ export default function RecentHighlights({
             >
               <div className="flex items-center gap-2 mb-2">
                 <span
-                  className="flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0"
+                  className="flex items-center justify-center w-8 h-8 rounded flex-shrink-0"
                   style={{ background: h.iconBg, color: h.iconColor }}
                 >
                   <Icon className="w-4 h-4" />

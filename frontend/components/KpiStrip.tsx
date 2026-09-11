@@ -16,7 +16,7 @@ function getTrend(current: number, past: number, invertColors = false) {
     text: `${Math.abs(pct).toFixed(1)}%`,
     Icon,
     color: isFavorable ? "var(--positive)" : "var(--negative)",
-    bg: isFavorable ? "#dcfce7" : "#fee2e2",
+    bg: isFavorable ? "var(--tint-green)" : "var(--tint-red)",
   };
 }
 
@@ -24,8 +24,8 @@ const TILES = [
   {
     key: "revenue" as const,
     label: "Revenue",
-    iconBg: "#dcfce7",
-    iconColor: "#16a34a",
+    iconBg: "var(--tint-green)",
+    iconColor: "var(--tint-green-ink)",
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
@@ -36,8 +36,8 @@ const TILES = [
     key: "gross_profit" as const,
     label: "Gross Profit",
     marginKey: "gross_margin_pct" as const,
-    iconBg: "#dbeafe",
-    iconColor: "#2563eb",
+    iconBg: "var(--tint-blue)",
+    iconColor: "var(--tint-blue-ink)",
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
         <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
@@ -48,8 +48,8 @@ const TILES = [
     key: "operating_expenses" as const,
     label: "Operating Expenses",
     invertColors: true,
-    iconBg: "#fee2e2",
-    iconColor: "#dc2626",
+    iconBg: "var(--tint-red)",
+    iconColor: "var(--tint-red-ink)",
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
         <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
@@ -60,8 +60,8 @@ const TILES = [
     key: "net_income" as const,
     label: "Net Income",
     marginKey: "net_margin_pct" as const,
-    iconBg: "#f3e8ff",
-    iconColor: "#9333ea",
+    iconBg: "var(--tint-purple)",
+    iconColor: "var(--tint-purple-ink)",
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
         <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
@@ -100,7 +100,7 @@ export default function KpiStrip({
                 {t.label}
               </span>
               <span
-                className="rounded-xl p-2 flex items-center justify-center flex-shrink-0"
+                className="rounded p-2 flex items-center justify-center flex-shrink-0"
                 style={{ background: t.iconBg, color: t.iconColor }}
               >
                 {t.icon}

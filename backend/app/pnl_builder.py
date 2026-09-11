@@ -56,19 +56,29 @@ def empty_totals() -> dict[str, float]:
 
 
 def build(rows: list[dict]) -> dict:
+    """Flat (section, ledger) rows -> the statement.
+
+    A section's children are LEDGER groups, not individual accounts: the
+    grid shows "Operating Revenue" and, expanded, "Handling & Services
+    Revenue", "Inbound Handling Revenue", and so on. Accounts still exist --
+    they are one level further down, reached by drilling into a ledger.
+    """
     by_section: dict[str, list[dict]] = {k: [] for k in _ORDER}
 
     for r in rows:
         key = r.get("pnl_section")
         if key in by_section:
+            name = r.get("ledger_name") or "Unmapped"
             by_section[key].append(
                 {
-                    # Raw name -- the drill-down key. Never displayed.
-                    "account_name": r["account_name"],
-                    # Display name -- GL code stripped.
-                    "display_name": r.get("display_name") or r["account_name"],
+                    # The drill-down key AND the label -- a ledger name is
+                    # already clean, so there is no code to strip.
+                    "ledger_name": name,
+                    "display_name": name,
                     "amount": float(r.get("amount") or 0),
                     "txn_count": r.get("txn_count") or 0,
+                    # How many GL accounts roll up into this ledger.
+                    "account_count": r.get("account_count") or 0,
                 }
             )
 
@@ -85,7 +95,7 @@ def build(rows: list[dict]) -> dict:
             "key": k,
             "label": _LABELS[k],
             "total": totals[k],
-            "accounts": by_section[k],
+            "ledgers": by_section[k],
         }
         for k in _ORDER
     ]

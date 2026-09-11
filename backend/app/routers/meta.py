@@ -21,6 +21,13 @@ def departments():
     return {"departments": run(sql, params)}
 
 
+@router.get("/companies")
+def companies():
+    """Legal entities in the ledger, for the Company filter."""
+    sql, params = queries.companies()
+    return {"companies": run(sql, params)}
+
+
 @router.get("/date-range")
 def date_range():
     sql, params = queries.date_bounds()
@@ -30,17 +37,22 @@ def date_range():
 
 @router.get("/unmatched")
 def unmatched():
-    """GL account names with no match in the chart of accounts.
-    MUST be empty -- anything here is money missing from the P&L."""
+    """Ledger rows carrying no account_type, and so excluded from the P&L.
+
+    The consolidated ledger has no chart_of_accounts to miss; a row lands
+    here only when account_type is NULL on the ledger itself, which in this
+    source means the account was deleted in QuickBooks. Their amounts are
+    left out of the statement, so this endpoint is how that stays visible.
+    """
     sql, params = queries.unmatched()
     rows = run(sql, params)
     return {
         "clean": not rows,
         "unmatched_accounts": rows,
-        "verdict": ("Every GL account maps to the chart of accounts."
+        "verdict": ("Every ledger row carries an account_type."
                     if not rows else
-                    f"{len(rows)} account name(s) failed to map. Their "
-                    "amounts are missing from the P&L."),
+                    f"{len(rows)} account(s) carry no account_type (deleted "
+                    "in QuickBooks). Their amounts are excluded from the P&L."),
     }
 
 
@@ -50,8 +62,9 @@ def ledger_balance():
     SUM(amount) across EVERY account -- P&L and balance sheet together --
     must be exactly 0, because debits equal credits.
 
-    This is the strongest single test available: it catches rows lost or
-    duplicated by the join, which no other check will surface.
+    This is the strongest single test available: it verifies the source
+    table is internally consistent and that nothing has quietly dropped or
+    duplicated rows, which no other check will surface.
     """
     sql, params = queries.ledger_balance()
     row = run(sql, params)[0]
@@ -60,8 +73,9 @@ def ledger_balance():
     return {
         "balanced": balanced,
         **row,
-        "verdict": ("Ledger balances. The join neither lost nor duplicated rows."
+        "verdict": ("Ledger balances. Debits equal credits across every "
+                    "account; no rows lost or duplicated."
                     if balanced else
-                    "OUT OF BALANCE. The join is dropping or duplicating rows; "
+                    "OUT OF BALANCE. Rows are being dropped or duplicated; "
                     "do not trust the P&L until this is resolved."),
     }

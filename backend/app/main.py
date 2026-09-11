@@ -7,7 +7,7 @@ from google.api_core import exceptions as gexc
 from google.auth import exceptions as auth_exc
 
 from .config import settings
-from .routers import meta, pnl
+from .routers import balance_sheet, ledger, meta, pnl
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,6 +26,8 @@ app.add_middleware(
 )
 
 app.include_router(pnl.router)
+app.include_router(balance_sheet.router)
+app.include_router(ledger.router)
 app.include_router(meta.router)
 
 

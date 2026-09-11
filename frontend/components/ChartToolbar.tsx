@@ -9,12 +9,13 @@ export default function ChartToolbar({ statement, filename }: { statement: State
     // Flatten statement into rows for CSV
     const rows: Record<string, any>[] = [];
     statement.sections.forEach(section => {
-      section.accounts.forEach(account => {
+      section.ledgers.forEach(ledger => {
         rows.push({
           Section: section.label,
-          Account: account.display_name,
-          Amount: account.amount,
-          "Transaction Count": account.txn_count
+          Ledger: ledger.display_name,
+          Amount: ledger.amount,
+          Accounts: ledger.account_count,
+          "Transaction Count": ledger.txn_count
         });
       });
     });

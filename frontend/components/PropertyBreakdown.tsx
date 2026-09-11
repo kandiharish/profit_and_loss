@@ -65,7 +65,7 @@ export default function PropertyBreakdown({
     <div className="panel mt-5">
       {/* Header */}
       <div className="flex items-center gap-2.5 px-5 py-4 border-b" style={{ borderColor: "var(--color-line)" }}>
-        <div className="p-1.5 rounded-lg" style={{ background: "#f3e8ff", color: "#9333ea" }}>
+        <div className="p-1.5 rounded" style={{ background: "var(--tint-purple)", color: "var(--tint-purple-ink)" }}>
           <Building2 className="w-4 h-4" />
         </div>
         <div>
@@ -78,7 +78,7 @@ export default function PropertyBreakdown({
       {isLoading && (
         <div className="animate-pulse px-5 py-6 space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-10 rounded-lg bg-[var(--color-input)] opacity-60" />
+            <div key={i} className="h-10 rounded bg-[var(--color-hover)] opacity-60" />
           ))}
         </div>
       )}
@@ -176,7 +176,7 @@ export default function PropertyBreakdown({
                 <tfoot>
                   <tr
                     className="text-xs font-semibold"
-                    style={{ borderTop: "2px solid var(--color-line)", background: "var(--color-input)" }}
+                    style={{ borderTop: "2px solid var(--color-line)", background: "var(--color-hover)" }}
                   >
                     <td className="px-5 py-3 text-[var(--color-muted)] uppercase tracking-wider">
                       Total ({data.properties.length} properties)
